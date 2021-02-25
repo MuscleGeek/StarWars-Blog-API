@@ -8,8 +8,8 @@ from flask_swagger import swagger
 from flask_cors import CORS
 from utils import APIException, generate_sitemap
 from admin import setup_admin
-from models import db, User
-#from models import Person
+from models import db, User, People, Planet, Favorites
+
 
 app = Flask(__name__)
 app.url_map.strict_slashes = False
@@ -36,8 +36,8 @@ def handle_hello():
     response_body = {
         "msg": "Hello, this is your GET /user response "
     }
-
-    return jsonify(response_body), 200
+    usuario = User(1,"roflmao","male","lol@lol.com")
+    return jsonify(usuario.__repr__()), 200
 
 # this only runs if `$ python src/main.py` is executed
 if __name__ == '__main__':
