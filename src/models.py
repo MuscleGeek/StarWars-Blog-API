@@ -39,7 +39,7 @@ class Favorites(db.Model):
             "type":self.type,     
         }
 
-class Planet(db.Model):
+class People(db.Model):
     
     id= db.Column(db.Integer, primary_key=True)
     name= db.Column(db.String(50), nullable=False)
@@ -56,7 +56,7 @@ class Planet(db.Model):
             "height":self.height,
         }
 
-class People(db.Model):
+class Planet(db.Model):
     
     id= db.Column(db.Integer, primary_key=True)
     name= db.Column(db.String(50), nullable=False)

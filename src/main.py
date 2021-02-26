@@ -41,6 +41,13 @@ def handle_hello():
     return jsonify(response_body),200
 # this only runs if `$ python src/main.py` is executed
 
+@app.route('/people')
+def add_people():
+    # add a character
+    people = People(23,'name','hair_color','skin_color','height')
+    db.session.add(people)
+    db.session.commit()
+
 
 if __name__ == '__main__':
     PORT = int(os.environ.get('PORT', 3000))
