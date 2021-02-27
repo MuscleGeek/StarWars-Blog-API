@@ -74,4 +74,6 @@ class Planet(db.Model):
             "terrain": self.terrain,
             "population": self.population,
         }
+        
+
 
