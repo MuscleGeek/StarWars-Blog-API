@@ -9,22 +9,21 @@ from sqlalchemy import Column, ForeignKey, Integer, String, Boolean, Float
 db = SQLAlchemy()
 
 class User(db.Model):
-    
     id= db.Column(db.Integer, primary_key=True)
     name= db.Column(db.String(50), nullable=False)
     gender = db.Column(db.String(10), nullable=False)
     password = db.Column(db.String(20), nullable=False)
     email = db.Column(db.String(50), nullable=False)
     is_active = db.Column(db.Boolean(), nullable=False)
-    favz = db.relationship('Favorites', lazy=True)
+    favorites = db.relationship('Favorites', lazy=True)
 
     def serialize(self):
         return{
-            "id":self.id,
+            "id": self.id,
             "name":self.name,
             "gender":self.gender,
             "email":self.email,
-            "favz":list(map(lambda f: f.serialize(), self.favorites))   
+            "favorites":list(map(lambda f: f.serialize(), self.favorites))   
         }
 
 class Favorites(db.Model):
@@ -32,11 +31,11 @@ class Favorites(db.Model):
     id= db.Column(db.Integer, primary_key=True)
     name= db.Column(db.String(50), nullable=False)
     type= db.Column(db.Boolean)
-    user_id = db.Column(db.Integer, db.ForeignKey("User.id"))   
+    user_id = db.Column(db.Integer, db.ForeignKey(User.id))   
 
     def serialize(self):
-        return{
-            "id":self.id,
+        return{   
+            "id": self.id, 
             "name":self.name,
             "type":self.type,     
         }
@@ -69,7 +68,7 @@ class Planet(db.Model):
 
     def serialize(self):
         return{
-            "id":self.id,
+            "id": self.id,
             "name":self.name,
             "diameter":self.diameter,
             "climate": self.climate,

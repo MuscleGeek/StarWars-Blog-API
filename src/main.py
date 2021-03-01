@@ -42,25 +42,25 @@ def get_users():
     # return jsonify(usuario.__repr__()), 200
     return jsonify(payload),200
 # this only runs if `$ python src/main.py` is executed
-@app.route('/user/<int:id>', methods=['GET'])
-def get_user_by_id(id):
-    user = User.query.filter_by(id=id).first_or_404()
+@app.route('/user/<int:fid>', methods=['GET'])
+def get_user_by_id(fid):
+    user = User.query.filter_by(id=fid).first_or_404()
     return jsonify(user.serialize()), 200
 
 @app.route('/user', methods=['POST'])
 def add_user():
     req_body = json.loads(request.data)
-    if req_body["name"] == None and req_body["gender"] == None and req_body["password"] == None and req_body["email"] == None:
+    if req_body["name"] == None and req_body["gender"] == None and req_body["password"] == None and req_body["email"] == None and req_body["is_active"] == None:
         return "Invalid data or empty slots"
     else:
-        usr = User(name= req_body["name"], gender= req_body["gender"], password= req_body["password"], email= req_body["email"])
+        usr = User(name= req_body["name"], gender= req_body["gender"], password= req_body["password"], email= req_body["email"], is_active=req_body["is_active"])
         db.session.add(usr)    
         db.session.commit()
         return("Data has been added successfully")
 
-@app.route('/user/<int:id>', methods=['DELETE'])
-def del_user_by_id(id):
-    user = User.query.filter_by(id=id).first_or_404()
+@app.route('/user/<int:fid>', methods=['DELETE'])
+def del_user_by_id(fid):
+    user = User.query.filter_by(id=fid).first_or_404()
     db.session.delete(user)
     db.session.commit()
     return("User has been deleted successfully"), 200
@@ -88,19 +88,19 @@ def get_people():
     payload = list(map(lambda p: p.serialize(),ppl))        #scan all data from table... at same it is being serialized
     return jsonify(payload), 200                            #Return the payload data via json type format to FE
 
-@app.route('/people/<int:id>', methods=['GET'])
-def get_people_by_id(id):
+@app.route('/people/<int:fid>', methods=['GET'])
+def get_people_by_id(fid):
 
-    ppl = People.query.filter_by(id=id).first_or_404()
+    ppl = People.query.filter_by(id=fid).first_or_404()
     #ppl = db.session.query(People).filter(People.id).first()
     #ppl= People.query.filter_by(id=id).first() 
     #ppl = session.query(People).get(id=id).first()
     return jsonify(ppl.serialize()), 200
 
-@app.route('/people/<int:id>', methods=['DELETE'])
-def del_people_by_id(id):
+@app.route('/people/<int:fid>', methods=['DELETE'])
+def del_people_by_id(fid):
 
-    ppl = People.query.filter_by(id=id).first_or_404()
+    ppl = People.query.filter_by(id=fid).first_or_404()
     db.session.delete(ppl)
     db.session.commit()
     return "Data has been deleted successfully"
@@ -126,11 +126,42 @@ def add_planet():
         db.session.commit() #commit changes into db by session 
         return "Los datos han sido ingresados correctamente"
 
-@app.route('/planet/<int:id>', methods=['GET'])
-def get_planet_by_id(id):
-    planet = Planet.query.filter_by(id=id).first_or_404()  #Getting and matching ids or throwing 404 status code
+@app.route('/planet/<int:fid>', methods=['GET'])
+def get_planet_by_id(fid):
+    planet = Planet.query.filter_by(id=fid).first_or_404()  #Getting and matching ids or throwing 404 status code
     return jsonify(planet.serialize()), 200                 #return the object via json serialized format to FE
 #endregion Planet CRUD
+
+#region Favorites
+@app.route('/favorites', methods=['GET'])
+def get_favz():
+    favz = Favorites.query.all()
+    payload = list(map(lambda f: f.serialize(), favz))
+    return jsonify(payload)
+
+@app.route('/favorites/<int:fid>', methods=['GET'])
+def get_one_fav(fid):
+    fav = Favorites.query.filter_by(id=fid).first_or_404()
+    return jsonify(fav.serialize())
+
+@app.route('/favorites', methods=['POST'])
+def add_new_fav():
+    req_body = json.loads(request.data)
+    if req_body["name"] == None and req_body["type"] == None:
+        flash('Datos invalidos o campos incompletos')
+    else:
+        favs = Favorites(name=req_body["name"], type=req_body["type"])
+        db.session.add(favs)
+        db.session.commit()
+        return "Data has been added successfully"
+
+@app.route('/favorites/<int:fid>', methods=["DELETE"])
+def del_one_fav(fid):
+    favz = People.query.filter_by(id=fid).first_or_404()
+    db.session.delete(favz)
+    db.session.commit()
+    return('Favorite has been deleted successfully')  
+#endregion Favorites
 
 if __name__ == '__main__':
     PORT = int(os.environ.get('PORT', 3000)) #default port for os=>env
