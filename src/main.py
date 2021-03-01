@@ -92,9 +92,11 @@ def get_people():
 def get_people_by_id(fid):
 
     ppl = People.query.filter_by(id=fid).first_or_404()
+        #alternatives#
     #ppl = db.session.query(People).filter(People.id).first()
     #ppl= People.query.filter_by(id=id).first() 
     #ppl = session.query(People).get(id=id).first()
+        #alternatives#
     return jsonify(ppl.serialize()), 200
 
 @app.route('/people/<int:fid>', methods=['DELETE'])
@@ -130,6 +132,10 @@ def add_planet():
 def get_planet_by_id(fid):
     planet = Planet.query.filter_by(id=fid).first_or_404()  #Getting and matching ids or throwing 404 status code
     return jsonify(planet.serialize()), 200                 #return the object via json serialized format to FE
+
+@app.route('/planet/<int:fid>', methods=['PUT'])
+def update_one_planet(fid):
+    
 #endregion Planet CRUD
 
 #region Favorites
@@ -161,6 +167,7 @@ def del_one_fav(fid):
     db.session.delete(favz)
     db.session.commit()
     return('Favorite has been deleted successfully')  
+
 #endregion Favorites
 
 if __name__ == '__main__':
