@@ -9,6 +9,7 @@ from flask_cors import CORS
 from utils import APIException, generate_sitemap
 from admin import setup_admin
 from models import db, User, People, Planet, Favorites
+import json
 
 
 
@@ -41,10 +42,10 @@ def get_users():
     # return jsonify(usuario.__repr__()), 200
     return jsonify(payload),200
 # this only runs if `$ python src/main.py` is executed
-@app.route('/user/<int:fid>', methods=['GET'])
-def get_user_by_id(fid):
-    user = User.query.get(fid)
-    return jsonify(user), 200
+@app.route('/user/<int:id>', methods=['GET'])
+def get_user_by_id(id):
+    user = User.query.filter_by(id=id).first_or_404()
+    return jsonify(user.serialize()), 200
 
 @app.route('/user', methods=['POST'])
 def add_user():
@@ -70,7 +71,7 @@ def del_user_by_id(id):
 def add_people():
     # add a character
     # DUMMY DATA#people = People(name='John',hair_color='Brown', skin_color='Black', height=1) 
-    req_body = json.loads(request.data)  #Getting request data via json format to bridge 2 FE-BE 
+    req_body = json.loads(request.data)  #Getting request data via json format to bridge FE-BE 
     #people data validation slots
     if req_body["name"] == None and req_body["hair_color"] == None and req_body["skin_color"] == None and req_body["height"]: #Validation slots => BD <= <&1...While every1 gets OK => it gets ahead then
         return "Invalid data or empty slots"
@@ -90,8 +91,11 @@ def get_people():
 @app.route('/people/<int:id>', methods=['GET'])
 def get_people_by_id(id):
 
-    ppl= People.query.filter_by(id=id).first() #----Checkpoint to start tomorrow (fixing get by id --) 
-    return jsonify(get_ppl), 200
+    ppl = People.query.filter_by(id=id).first_or_404()
+    #ppl = db.session.query(People).filter(People.id).first()
+    #ppl= People.query.filter_by(id=id).first() 
+    #ppl = session.query(People).get(id=id).first()
+    return jsonify(ppl.serialize()), 200
 
 @app.route('/people/<int:id>', methods=['DELETE'])
 def del_people_by_id(id):
@@ -122,12 +126,12 @@ def add_planet():
         db.session.commit() #commit changes into db by session 
         return "Los datos han sido ingresados correctamente"
 
-@app.route('/planet/<int:fid>', methods=['GET'])
-def get_planet_by_id(fid):
-    planet = Planet.query.get(fid)
-    return jsonify(planet), 200    
+@app.route('/planet/<int:id>', methods=['GET'])
+def get_planet_by_id(id):
+    planet = Planet.query.filter_by(id=id).first_or_404()  #Getting and matching ids or throwing 404 status code
+    return jsonify(planet.serialize()), 200                 #return the object via json serialized format to FE
 #endregion Planet CRUD
 
 if __name__ == '__main__':
     PORT = int(os.environ.get('PORT', 3000)) #default port for os=>env
-    app.run(host='0.0.0.0', port=PORT, debug=False) #running 127.0.0.1 and debug featured turned off
+    app.run(host='0.0.0.0', port=PORT, debug=False) #running 127.0.0.1 and debug feature turned off

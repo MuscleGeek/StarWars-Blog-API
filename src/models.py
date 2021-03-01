@@ -15,14 +15,16 @@ class User(db.Model):
     gender = db.Column(db.String(10), nullable=False)
     password = db.Column(db.String(20), nullable=False)
     email = db.Column(db.String(50), nullable=False)
+    is_active = db.Column(db.Boolean(), nullable=False)
+    favz = db.relationship('Favorites', lazy=True)
 
     def serialize(self):
-
         return{
             "id":self.id,
             "name":self.name,
             "gender":self.gender,
-            "email":self.email   
+            "email":self.email,
+            "favz":list(map(lambda f: f.serialize(), self.favorites))   
         }
 
 class Favorites(db.Model):
@@ -30,7 +32,7 @@ class Favorites(db.Model):
     id= db.Column(db.Integer, primary_key=True)
     name= db.Column(db.String(50), nullable=False)
     type= db.Column(db.Boolean)
-    user_id = db.Column(db.Integer, db.ForeignKey(User.id))   
+    user_id = db.Column(db.Integer, db.ForeignKey("User.id"))   
 
     def serialize(self):
         return{
@@ -55,7 +57,7 @@ class People(db.Model):
             "skin_color":self.skin_color,
             "height":self.height,
         }
-
+    
 class Planet(db.Model):
     
     id= db.Column(db.Integer, primary_key=True)
