@@ -133,8 +133,8 @@ def get_planet_by_id(fid):
     planet = Planet.query.filter_by(id=fid).first_or_404()  #Getting and matching ids or throwing 404 status code
     return jsonify(planet.serialize()), 200                 #return the object via json serialized format to FE
 
-@app.route('/planet/<int:fid>', methods=['PUT'])
-def update_one_planet(fid):
+#@app.route('/planet/<int:fid>', methods=['PUT'])
+#def update_one_planet(fid):
     
 #endregion Planet CRUD
 
