@@ -73,10 +73,10 @@ def add_people():
     # DUMMY DATA#people = People(name='John',hair_color='Brown', skin_color='Black', height=1) 
     req_body = json.loads(request.data)  #Getting request data via json format to bridge FE-BE 
     #people data validation slots
-    if req_body["name"] == None and req_body["hair_color"] == None and req_body["skin_color"] == None and req_body["height"]: #Validation slots => BD <= <&1...While every1 gets OK => it gets ahead then
+    if req_body["name"] == None and req_body["hair_color"] == None and req_body["skin_color"] == None and req_body["height"] == None and req_body["birth_year"] == None and req_body["gender"] == None and req_body["image"] == None: #Validation slots => BD <= <&1...While every1 gets OK => it gets ahead then
         return "Invalid data or empty slots"
     else:
-        ppl = People(name= req_body["name"], hair_color= req_body["hair_color"], skin_color= req_body["skin_color"], height= req_body["height"]) #While all slots has been verified against None it's getting added to table and finally get commit by db.session
+        ppl = People(name= req_body["name"], hair_color= req_body["hair_color"], skin_color= req_body["skin_color"], height= req_body["height"], birth_year= req_body["birth_year"], gender= req_body["gender"], image= req_body["image"]) #While all slots has been verified against None it's getting added to table and finally get commit by db.session
         db.session.add(ppl)   #applying new data entry
         db.session.commit()   #commit changes to db
         return "Data has been addded successfully"
@@ -120,10 +120,10 @@ def get_planets():
 def add_planet():
     # dummy data planet  = Planet(name='Marduk',hair_color='Brown',skin_color='Caucasian',height=2)
     req_body =  json.loads(request.data)      #parsing json data to py dictionary
-    if  req_body["name"] == None and req_body["diameter"] == None and req_body["climate"] == None and req_body["terrain"] and req_body["population"]: #Validation slots, if is get empty, null or undefined it is not getting valid 
+    if  req_body["name"] == None and req_body["diameter"] == None and req_body["climate"] == None and req_body["terrain"] == None and req_body["population"] == None and req_body["image"] == None: #Validation slots, if is get empty, null or undefined it is not getting valid 
         return "Los datos son invalidos o incompletos" 
     else:
-        planet = Planet(name= req_body["name"], diameter= req_body["diameter"], climate= req_body["climate"], terrain= req_body["terrain"], population= req_body["population"]) #While all slots got validated.. it is getting ok status
+        planet = Planet(name= req_body["name"], diameter= req_body["diameter"], climate= req_body["climate"], terrain= req_body["terrain"], population= req_body["population"], image= req_body["image"]) #While all slots got validated.. it is getting ok status
         db.session.add(planet)  #applying new data into db (planet)
         db.session.commit() #commit changes into db by session 
         return "Los datos han sido ingresados correctamente"
