@@ -135,7 +135,20 @@ def get_planet_by_id(fid):
 
 #@app.route('/planet/<int:fid>', methods=['PUT'])
 #def update_one_planet(fid):
-    
+@app.route('/planet/<int:fid>', methods=['PUT'])
+def update_planet(fid):
+    planet = Planet.query.filter_by(id=fid).first_or_404()
+    if planet == None:
+        raise APIException("Planet not found", status_code=404)
+
+    req_body = json.load(request.data)
+    if req_body["name"] == None and req_body["diameter"] == None and req_body["climate"] == None and req_body["terrain"] == None and req_body["population"] == None and req_body["image"] == None:
+        flash("Planet has not been found")
+    else:
+        planet = Planet(name= req_body["name"], diameter= req_body["diameter"], climate= req_body["climate"], terrain= req_body["terrain"], population= req_body["population"], image=["image"])
+        db.session.add(planet)
+        db.session.commit()
+        return "Planet has been updated successfully"
 #endregion Planet CRUD
 
 #region Favorites
@@ -161,14 +174,62 @@ def add_new_fav():
         db.session.commit()
         return "Data has been added successfully"
 
+@app.route('/favorites/<int:fid>', methods=['PUT'])
+def update_fav(fid):
+    fav = Favorites.query.filter_by(id=fid).first_or_404()
+    if fav == None:
+        raise APIException("Favorite has not been found", status_code=404)
+
+    req_body = json.loads(request.data)
+    if req_body["name"] == None and req_body["type"] == None:
+        flash("Campos incompletos o invalidos")
+    else:
+        favs = Favorites(name= req_body["name"], type= req_body["type"])
+        db.session.add(favs)
+        db.session.commit()
+        return "Favorite has been updated successfully"
+
 @app.route('/favorites/<int:fid>', methods=["DELETE"])
 def del_one_fav(fid):
     favz = People.query.filter_by(id=fid).first_or_404()
     db.session.delete(favz)
     db.session.commit()
     return('Favorite has been deleted successfully')  
-
 #endregion Favorites
+
+#region Registration
+@app.route('/registration', methods=["POST"])
+def signup():
+    if request.method == 'POST':
+        name= request.json.get("name", None)
+        gender = request.json.get("gender", None)
+        password = request.json.get("password", None)
+        email = request.json.get(email, None)
+                                                            #BEGIN Validation Block
+        if not email:
+            return jsonify({"msg:" "nombre es requerido"}), 400
+        if not gender:
+            return jsonify({"msg:" "genero es requerido"}), 400
+        if not password:
+            return jsonify({"msg:" "password es requerido"}), 400
+        if not email:
+            return jsonify({"msg:" "email es requerido"}), 400
+        
+        signup = User.query.filter_by(email = email).first_or_404()
+        if signup:
+                return jsonify({"msg": "Username already exists"}), 400
+                                                                #END Validation Block
+        signup = User()         #User table instance
+        signup.email = email    #email attr
+        sha256encode =generate_password_hash(password)  #generating hash via sha265 cryptography to password
+        print(len(sha256encode))
+        user.password = sha256encode    #cryptographically password hashed via sha256. Althrough, sha512 is an option too
+        print(len(user.password))
+        db.session.add(signup)  #added into db
+        db.session.commit() #commit changes
+
+        return jsonify({"sucess": "Account has been created successfully", "status": "true"}), 200
+#endRegion Registration
 
 if __name__ == '__main__':
     PORT = int(os.environ.get('PORT', 3000)) #default port for os=>env
