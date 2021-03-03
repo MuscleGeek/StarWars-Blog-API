@@ -81,6 +81,7 @@ class Planet(db.Model):
             "climate": self.climate,
             "terrain": self.terrain,
             "population": self.population,
+            "image": self.image
         }
         
 
