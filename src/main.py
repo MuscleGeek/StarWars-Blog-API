@@ -50,10 +50,10 @@ def get_user_by_id(fid):
 @app.route('/user', methods=['POST'])
 def add_user():
     req_body = json.loads(request.data)
-    if req_body["name"] == None and req_body["gender"] == None and req_body["password"] == None and req_body["email"] == None and req_body["is_active"] == None:
+    if req_body["name"] == None and req_body["gender"] == None and req_body["password"] == None and req_body["email"] == None:
         return "Invalid data or empty slots"
     else:
-        usr = User(name= req_body["name"], gender= req_body["gender"], password= req_body["password"], email= req_body["email"], is_active=req_body["is_active"])
+        usr = User(name= req_body["name"], gender= req_body["gender"], password= req_body["password"], email= req_body["email"])
         db.session.add(usr)    
         db.session.commit()
         return("Data has been added successfully")

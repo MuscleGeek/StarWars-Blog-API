@@ -14,7 +14,6 @@ class User(db.Model):
     gender = db.Column(db.String(10), nullable=False)
     password = db.Column(db.String(20), nullable=False)
     email = db.Column(db.String(50), nullable=False)
-    is_active = db.Column(db.Boolean(), nullable=False)
     favorites = db.relationship('Favorites', lazy=True)
 
     def serialize(self):
@@ -30,7 +29,7 @@ class Favorites(db.Model):
     
     id= db.Column(db.Integer, primary_key=True)
     name= db.Column(db.String(50), nullable=False)
-    type= db.Column(db.Boolean)
+    type= db.Column(db.Boolean(), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey(User.id))   
 
     def serialize(self):
@@ -47,6 +46,10 @@ class People(db.Model):
     hair_color = db.Column(db.String(20), nullable=False)
     skin_color = db.Column(db.String(20), nullable=False)
     height = db.Column(db.Float, nullable=False)
+    birth_year = db.Column(db.String(50), nullable=False)
+    gender = db.Column(db.String(50), nullable=False)
+    image = db.Column(db.String(max), nullable=False)
+    
 
     def serialize(self):
         return{
@@ -55,6 +58,9 @@ class People(db.Model):
             "hair_color":self.hair_color,
             "skin_color":self.skin_color,
             "height":self.height,
+            "birth_year":self.birth_year,
+            "gender":self.gender,
+            "image":self.image
         }
     
 class Planet(db.Model):
