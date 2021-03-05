@@ -6,21 +6,26 @@ from flask import Flask, request, jsonify, url_for, json, flash
 from flask_migrate import Migrate
 from flask_swagger import swagger
 from flask_cors import CORS
-from utils import APIException, generate_sitemap
+from utils import APIException, generate_sitemap                                                            #raise APIExceptions
 from admin import setup_admin
-from models import db, User, People, Planet, Favorites
+from models import db, User, People, Planet, Favorites                                                      #Class Tables from Models.py
 import json
+from werkzeug.security import generate_password_hash, check_password_hash                                   #WSGI Encrypter
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity              #JTW management
 
 
 
 app = Flask(__name__)
 app.url_map.strict_slashes = False
+            # SETS UP the Flask-JWT-Extended extension
+app.config["JWT_SECRET_KEY"] = "$$2021$$jvm@@"        # Change this "super secret" with something else!
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DB_CONNECTION_STRING')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 MIGRATE = Migrate(app, db)
 db.init_app(app)
 CORS(app)
 setup_admin(app)
+jwt = JWTManager(app)
 
 
 # Handle/serialize errors like a JSON object
@@ -34,7 +39,7 @@ def sitemap():
     return generate_sitemap(app)
 
 #region USER CRUD here...
-@app.route('/user', methods=['GET'])
+@app.route('/user', methods=['GET'])                    #C"R"UD All Users
 def get_users():
     users = User.query.all()
     payload = list(map(lambda u: u.serialize(),users))
@@ -47,7 +52,7 @@ def get_user_by_id(fid):
     user = User.query.filter_by(id=fid).first_or_404()
     return jsonify(user.serialize()), 200
 
-@app.route('/user', methods=['POST'])
+@app.route('/user', methods=['POST'])                   #"C"RUD a new User              
 def add_user():
     req_body = json.loads(request.data)
     if req_body["name"] == None and req_body["gender"] == None and req_body["password"] == None and req_body["email"] == None:
@@ -67,12 +72,13 @@ def del_user_by_id(fid):
 #endregion USER CRUD here...
 
 #region PEOPLE CRUD here
-@app.route('/people', methods=['POST']) #adding new character
+@app.route('/people', methods=['POST'])                   #"C"RUD People
 def add_people():
     # add a character
     # DUMMY DATA#people = People(name='John',hair_color='Brown', skin_color='Black', height=1) 
     req_body = json.loads(request.data)  #Getting request data via json format to bridge FE-BE 
-    #people data validation slots
+    
+    #People data validation slots
     if req_body["name"] == None and req_body["hair_color"] == None and req_body["skin_color"] == None and req_body["height"] == None and req_body["birth_year"] == None and req_body["gender"] == None and req_body["image"] == None: #Validation slots => BD <= <&1...While every1 gets OK => it gets ahead then
         return "Invalid data or empty slots"
     else:
@@ -81,7 +87,7 @@ def add_people():
         db.session.commit()   #commit changes to db
         return "Data has been addded successfully"
 
-@app.route('/people', methods=['GET'])  #get all data from people table
+@app.route('/people', methods=['GET'])                      #C"R"UD All People
 def get_people():
 
     ppl = People.query.all()                                #it gets all data  by query method.. from ppl table
@@ -99,7 +105,7 @@ def get_people_by_id(fid):
         #alternatives#
     return jsonify(ppl.serialize()), 200
 
-@app.route('/people/<int:fid>', methods=['DELETE'])
+@app.route('/people/<int:fid>', methods=['DELETE'])         #CRU"D" People by ID
 def del_people_by_id(fid):
 
     ppl = People.query.filter_by(id=fid).first_or_404()
@@ -109,33 +115,31 @@ def del_people_by_id(fid):
 #endregion People CRUD
 
 #region PLANET CRUD  here...
-@app.route('/planet', methods=['GET'])              #Same logic like above
+@app.route('/planet', methods=['GET'])                      #C"R"UD All Planets
 def get_planets():
 
     planet = Planet.query.all()
     payload = list(map(lambda w: w.serialize(),planet))
-    return jsonify(payload), 200                    #same logic like above
+    return jsonify(payload), 200                            #same logic like above
 
-@app.route('/planet', methods=['POST'])  #Adding a new planet to DB
+@app.route('/planet', methods=['POST'])                     #"C"RUD Planet
 def add_planet():
     # dummy data planet  = Planet(name='Marduk',hair_color='Brown',skin_color='Caucasian',height=2)
-    req_body =  json.loads(request.data)      #parsing json data to py dictionary
+    req_body =  json.loads(request.data)                    #parsing json data to py dictionary
     if  req_body["name"] == None and req_body["diameter"] == None and req_body["climate"] == None and req_body["terrain"] == None and req_body["population"] == None and req_body["image"] == None: #Validation slots, if is get empty, null or undefined it is not getting valid 
         return "Los datos son invalidos o incompletos" 
     else:
         planet = Planet(name= req_body["name"], diameter= req_body["diameter"], climate= req_body["climate"], terrain= req_body["terrain"], population= req_body["population"], image= req_body["image"]) #While all slots got validated.. it is getting ok status
-        db.session.add(planet)  #applying new data into db (planet)
-        db.session.commit() #commit changes into db by session 
+        db.session.add(planet)                              #applying new data into db (planet)
+        db.session.commit()                                 #commit changes into db by session 
         return "Los datos han sido ingresados correctamente"
 
-@app.route('/planet/<int:fid>', methods=['GET'])
+@app.route('/planet/<int:fid>', methods=['GET'])        #
 def get_planet_by_id(fid):
     planet = Planet.query.filter_by(id=fid).first_or_404()  #Getting and matching ids or throwing 404 status code
     return jsonify(planet.serialize()), 200                 #return the object via json serialized format to FE
 
-#@app.route('/planet/<int:fid>', methods=['PUT'])
-#def update_one_planet(fid):
-@app.route('/planet/<int:fid>', methods=['PUT'])
+@app.route('/planet/<int:fid>', methods=['PUT'])            #CR"U"D Planet by ID
 def update_planet(fid):
     planet = Planet.query.filter_by(id=fid).first_or_404()
     if planet == None:
@@ -152,18 +156,18 @@ def update_planet(fid):
 #endregion Planet CRUD
 
 #region Favorites
-@app.route('/favorites', methods=['GET'])
+@app.route('/favorites', methods=['GET'])                    #C"R"UD All Favorites                                                             
 def get_favz():
     favz = Favorites.query.all()
     payload = list(map(lambda f: f.serialize(), favz))
     return jsonify(payload)
 
-@app.route('/favorites/<int:fid>', methods=['GET'])
+@app.route('/favorites/<int:fid>', methods=['GET'])          #C"R"UD Favorites by ID
 def get_one_fav(fid):
     fav = Favorites.query.filter_by(id=fid).first_or_404()
     return jsonify(fav.serialize())
 
-@app.route('/favorites', methods=['POST'])
+@app.route('/favorites', methods=['POST'])                   #"C"RUD Favorites
 def add_new_fav():
     req_body = json.loads(request.data)
     if req_body["name"] == None and req_body["type"] == None:
@@ -174,7 +178,7 @@ def add_new_fav():
         db.session.commit()
         return "Data has been added successfully"
 
-@app.route('/favorites/<int:fid>', methods=['PUT'])
+@app.route('/favorites/<int:fid>', methods=['PUT'])            #CR"U"D Favorites by ID
 def update_fav(fid):
     fav = Favorites.query.filter_by(id=fid).first_or_404()
     if fav == None:
@@ -189,7 +193,7 @@ def update_fav(fid):
         db.session.commit()
         return "Favorite has been updated successfully"
 
-@app.route('/favorites/<int:fid>', methods=["DELETE"])
+@app.route('/favorites/<int:fid>', methods=["DELETE"])          #CRU"D" by Favorites ID
 def del_one_fav(fid):
     favz = People.query.filter_by(id=fid).first_or_404()
     db.session.delete(favz)
@@ -198,14 +202,14 @@ def del_one_fav(fid):
 #endregion Favorites
 
 #region Registration
-@app.route('/registration', methods=["POST"])
+@app.route('/signup', methods=["POST"])
 def signup():
     if request.method == 'POST':
         name= request.json.get("name", None)
         gender = request.json.get("gender", None)
         password = request.json.get("password", None)
-        email = request.json.get(email, None)
-                                                            #BEGIN Validation Block
+        email = request.json.get("email", None)
+                                                                #BEGIN Validation Block
         if not email:
             return jsonify({"msg:" "nombre es requerido"}), 400
         if not gender:
@@ -219,18 +223,54 @@ def signup():
         if signup:
                 return jsonify({"msg": "Username already exists"}), 400
                                                                 #END Validation Block
-        signup = User()         #User table instance
-        signup.email = email    #email attr
-        sha256encode =generate_password_hash(password)  #generating hash via sha265 cryptography to password
+        signup = User()                                         #User table instance
+        signup.email = email                                    #email attr
+        sha256encode =generate_password_hash(password)          #generating hash via sha265 cryptography to password
         print(len(sha256encode))
-        user.password = sha256encode    #cryptographically password hashed via sha256. Althrough, sha512 is an option too
+        user.password = sha256encode                            #cryptographically password hashed via sha256. Althrough, sha512 is an option too
         print(len(user.password))
-        db.session.add(signup)  #added into db
-        db.session.commit() #commit changes
+        db.session.add(signup)                                  #added into db
+        db.session.commit()                                     #commit changes
 
         return jsonify({"sucess": "Account has been created successfully", "status": "true"}), 200
 #endRegion Registration
 
+#region Auth Login
+@app.route('/signin', methods=['POST'])                         #Log In route for Login Form
+def get_logged_in():
+    if request.method == 'POST':
+        email = request.json.get("email", None)
+        password = request.json.get("password", None)
+
+        if not email:
+            return jsonify({"msg:" "User is required"}) 400
+        if not password:
+            return jsonify({"msg": "Password is required"}), 400
+        
+        usr = User.query.filter_by(email=email).first_or_404()
+        if not usr:
+            return jsonify({"msg":"User/Password not valid"}), 401
+        
+        if not check_password_hash(usr.password, password):
+            return jsonify({"msg":"User/Password not valid"}), 401 
+    #region Token Built
+        expiring_token = datetime.timedelta(days=1)              #token expires ~1 day
+        accesing_token = create_access_token(identity=usr.email, expires_delta=expires_delta)  #we would be able to access via token using email and it checks by delta
+        data = {"user": usr.serialize(), "access":access_token, "expires": expiring_token.total_seconds()*1000} #set token to data object
+
+        return jsonify(data), 200    
+    #endregion Token Built    
+#endregion Auth Login
+
+#region Profile Acc
+@app.route('/profile', methods=['GET'])                         #getting profile dashboard after having gotten token validation by jwt_identity active session
+@jtw_required()
+def profile()
+if request.method == 'GET':
+    token = get_jwt_identity()
+    return({"success": "Access to private Profile", token}), 200
+#endregion Profile Acc
+
 if __name__ == '__main__':
-    PORT = int(os.environ.get('PORT', 3000)) #default port for os=>env
-    app.run(host='0.0.0.0', port=PORT, debug=False) #running 127.0.0.1 and debug feature turned off
+    PORT = int(os.environ.get('PORT', 3000))                    #default port for os=>env
+    app.run(host='0.0.0.0', port=PORT, debug=False)             #running 127.0.0.1 and debug feature turned off
