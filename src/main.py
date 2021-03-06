@@ -144,7 +144,7 @@ def update_planet(fid):
     planet = Planet.query.filter_by(id=fid).first_or_404()
     if planet == None:
         raise APIException("Planet not found", status_code=404)
-
+                                                            
     req_body = json.load(request.data)
     if req_body["name"] == None and req_body["diameter"] == None and req_body["climate"] == None and req_body["terrain"] == None and req_body["population"] == None and req_body["image"] == None:
         flash("Planet has not been found")
@@ -224,11 +224,13 @@ def signup():
                 return jsonify({"msg": "Username already exists"}), 400
                                                                 #END Validation Block
         signup = User()                                         #User table instance
-        signup.email = email                                    #email attr
+        signup.name = name
+        signup.gender = gender                                    #email attr
         sha256encode =generate_password_hash(password)          #generating hash via sha265 cryptography to password
         print(len(sha256encode))
-        user.password = sha256encode                            #cryptographically password hashed via sha256. Althrough, sha512 is an option too
+        signup.password = sha256encode                            #cryptographically password hashed via sha256. Althrough, sha512 is an option too
         print(len(user.password))
+        signup.email = email
         db.session.add(signup)                                  #added into db
         db.session.commit()                                     #commit changes
 
@@ -243,16 +245,17 @@ def get_logged_in():
         password = request.json.get("password", None)
 
         if not email:
-            return jsonify({"msg:" "User is required"}) 400
+            return jsonify({"msg:" "User is required"}), 400
         if not password:
             return jsonify({"msg": "Password is required"}), 400
         
         usr = User.query.filter_by(email=email).first_or_404()
         if not usr:
-            return jsonify({"msg":"User/Password not valid"}), 401
-        
+            return jsonify({"msg": "User/email not valid"}), 401
+
         if not check_password_hash(usr.password, password):
-            return jsonify({"msg":"User/Password not valid"}), 401 
+            return jsonify({"msg": "User/Password not valid"}), 401 
+
     #region Token Built
         expiring_token = datetime.timedelta(days=1)              #token expires ~1 day
         accesing_token = create_access_token(identity=usr.email, expires_delta=expires_delta)  #we would be able to access via token using email and it checks by delta
@@ -264,13 +267,13 @@ def get_logged_in():
 
 #region Profile Acc
 @app.route('/profile', methods=['GET'])                         #getting profile dashboard after having gotten token validation by jwt_identity active session
-@jtw_required()
-def profile()
-if request.method == 'GET':
-    token = get_jwt_identity()
-    return({"success": "Access to private Profile", token}), 200
+@jwt_required()
+def profile():
+    if request.method == 'GET':
+        token = get_jwt_identity()
+        return({"success": "Access to private Profile", "user":token}), 200
 #endregion Profile Acc
 
 if __name__ == '__main__':
     PORT = int(os.environ.get('PORT', 3000))                    #default port for os=>env
-    app.run(host='0.0.0.0', port=PORT, debug=False)             #running 127.0.0.1 and debug feature turned off
+    app.run(host='0.0.0.0', port=PORT, debug=True)             #running 127.0.0.1 and debug feature turned off
