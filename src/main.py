@@ -55,10 +55,10 @@ def get_user_by_id(fid):
 @app.route('/user', methods=['POST'])                   #"C"RUD a new User              
 def add_user():
     req_body = json.loads(request.data)
-    if req_body["name"] == None and req_body["gender"] == None and req_body["password"] == None and req_body["email"] == None:
+    if req_body["name"] == None and req_body["gender"] == None and req_body["email"] == None and req_body["password"] == None:
         return "Invalid data or empty slots"
     else:
-        usr = User(name= req_body["name"], gender= req_body["gender"], password= req_body["password"], email= req_body["email"])
+        usr = User(name= req_body["name"], gender= req_body["gender"], email= req_body["email"], password= req_body["password"])
         db.session.add(usr)    
         db.session.commit()
         return("Data has been added successfully")
@@ -207,30 +207,30 @@ def signup():
     if request.method == 'POST':
         name= request.json.get("name", None)
         gender = request.json.get("gender", None)
-        password = request.json.get("password", None)
         email = request.json.get("email", None)
-                                                                #BEGIN Validation Block
-        if not email:
+        password = request.json.get("password", None)
+                                                                #BEGIN Validation-Block
+        if not name:
             return jsonify({"msg:" "nombre es requerido"}), 400
         if not gender:
             return jsonify({"msg:" "genero es requerido"}), 400
-        if not password:
-            return jsonify({"msg:" "password es requerido"}), 400
         if not email:
             return jsonify({"msg:" "email es requerido"}), 400
+        if not password:
+            return jsonify({"msg:" "password es requerido"}), 400
         
         signup = User.query.filter_by(email = email).first_or_404()
         if signup:
                 return jsonify({"msg": "Username already exists"}), 400
-                                                                #END Validation Block
+                                                                #END Validation-Block
         signup = User()                                         #User table instance
-        signup.name = name
-        signup.gender = gender                                    #email attr
+        signup.name = name                                      #name attr
+        signup.gender = gender                                  #gender attr
+        signup.email = email                                    #email attr
         sha256encode =generate_password_hash(password)          #generating hash via sha265 cryptography to password
         print(len(sha256encode))
         signup.password = sha256encode                            #cryptographically password hashed via sha256. Althrough, sha512 is an option too
         print(len(user.password))
-        signup.email = email
         db.session.add(signup)                                  #added into db
         db.session.commit()                                     #commit changes
 
@@ -245,13 +245,13 @@ def get_logged_in():
         password = request.json.get("password", None)
 
         if not email:
-            return jsonify({"msg:" "User is required"}), 400
+            return jsonify({"msg:" "Email is required"}), 400
         if not password:
             return jsonify({"msg": "Password is required"}), 400
         
         usr = User.query.filter_by(email=email).first_or_404()
         if not usr:
-            return jsonify({"msg": "User/email not valid"}), 401
+            return jsonify({"msg": "User/Email not valid"}), 401
 
         if not check_password_hash(usr.password, password):
             return jsonify({"msg": "User/Password not valid"}), 401 
@@ -259,7 +259,7 @@ def get_logged_in():
     #region Token Built
         expiring_token = datetime.timedelta(days=1)              #token expires ~1 day
         accesing_token = create_access_token(identity=usr.email, expires_delta=expires_delta)  #we would be able to access via token using email and it checks by delta
-        data = {"user": usr.serialize(), "access":access_token, "expires": expiring_token.total_seconds()*1000} #set token to data object
+        data = {"user": usr.serialize(), "access":access_token, "expires": expiring_token.total_seconds()*1000, "activity": True} #set token to data object
 
         return jsonify(data), 200    
     #endregion Token Built    
